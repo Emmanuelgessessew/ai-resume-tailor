@@ -1,3 +1,4 @@
+from tailor_engine import match_keywords
 from flask import Flask, request, jsonify
 from resume_parser import extract_text_from_pdf, extract_text_from_docx
 import os
@@ -36,10 +37,17 @@ def upload_resume():
         resume_text = extract_text_from_docx(file_path)
     else:
         return jsonify({"error": "Unsupported file type"}), 400
+    
+     # ✅ Match keywords AFTER extracting resume_text
+    found, missing = match_keywords(resume_text, job_description)
+    
+     # ✅ Return everything in ONE clean response
 
     return jsonify({
         "resume_text": resume_text[:500],  # only first 500 chars for now
-        "job_description_received": job_description
+        "job_description_received": job_description,
+        "keywords_found": found[:20],        # First 20 found keywords
+        "keywords_missing": missing[:20]     # First 20 missing keywords
     })
 
 if __name__ == "__main__":
